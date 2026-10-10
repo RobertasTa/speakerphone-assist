@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google-site-verification" content="ngCuEME8a9C8od6O7mw1EHMId6BzZqJE9-xi-NIyy-Y" />
+<title>Speakerphone Assist — a USB conference speakerphone as a Home Assistant voice satellite</title>
+<meta name="description" content="Use a USB conference speakerphone as a Home Assistant voice satellite with the official Linux-Voice-Assistant: Proxmox LXC audio, PipeWire without udev, tuning in Home Assistant and your own wake word. Guide in English, Lithuanian and Russian, two small scripts, GPL-3.0.">
+<link rel="canonical" href="https://robertasta.github.io/speakerphone-assist/">
+<meta property="og:title" content="Speakerphone Assist">
+<meta property="og:description" content="A USB conference speakerphone as a Home Assistant voice satellite — say a wake word, give a command, hear the answer.">
+<meta property="og:image" content="https://robertasta.github.io/speakerphone-assist/social-preview.png">
+<meta property="og:type" content="website">
+<style>
+  :root{
+    --bg:#010d24; --bg2:#06173a; --card:#0b1f47;
+    --text:#f5f7fc; --muted:#bcc4d6; --amber:#e8b84b; --line:#1d3560; --blue:#4f9cf7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:"Segoe UI",system-ui,sans-serif;line-height:1.6}
+  a{color:var(--amber)}
+  code{background:var(--bg2);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:.9em}
+  .wrap{max-width:860px;margin:0 auto;padding:0 20px}
+  header{padding:56px 0 40px;text-align:center}
+  h1{font-size:2.4rem;font-weight:700;letter-spacing:.5px}
+  .tagline{font-size:1.25rem;color:var(--muted);margin-top:10px}
+  .aibrief{color:var(--muted);font-size:.9rem;text-align:center;padding-top:14px}
+  .amber{color:var(--amber);font-style:italic;margin-top:8px}
+  .actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:30px 0 8px}
+  .btn{display:inline-block;padding:12px 26px;border-radius:8px;font-weight:600;text-decoration:none}
+  .btn-amber{background:var(--amber);color:#1a1200}
+  .btn-ghost{border:1px solid var(--line);color:var(--text)}
+  .note{color:var(--muted);font-size:.9rem;text-align:center;margin-top:10px}
+  section{padding:36px 0;border-top:1px solid var(--line)}
+  h2{font-size:1.4rem;margin-bottom:18px}
+  .demo img{width:100%;max-width:820px;display:block;margin:0 auto;border-radius:10px;border:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .three{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .three .card{border-color:var(--blue)}
+  .num{display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background:var(--blue);color:#fff;text-align:center;font-weight:700;margin-bottom:10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+  .card h3{font-size:1.02rem;margin-bottom:6px}
+  .card p{color:var(--muted);font-size:.95rem}
+  .ask{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:24px}
+  .ask p{color:var(--muted)}
+  footer{padding:36px 0 48px;text-align:center;color:var(--muted);font-size:.92rem;border-top:1px solid var(--line)}
+  footer .sig{color:var(--amber);font-style:italic;margin-top:6px}
+  footer .ai{margin-top:10px;font-size:.85rem}
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <h1>Speakerphone Assist</h1>
+  <p class="tagline">A USB conference speakerphone as a Home Assistant voice satellite.</p>
+  <p class="amber">Say a wake word. Give a command. Hear the answer.</p>
+  <div class="actions">
+    <a class="btn btn-amber" href="https://github.com/RobertasTa/speakerphone-assist#readme">Read the guide</a>
+    <a class="btn btn-ghost" href="https://github.com/RobertasTa/speakerphone-assist">View on GitHub</a>
+  </div>
+  <p class="note">Also in <a href="https://github.com/RobertasTa/speakerphone-assist/blob/main/README_lt.md">Lithuanian</a>
+  and <a href="https://github.com/RobertasTa/speakerphone-assist/blob/main/README_ru.md">Russian</a>. Free and open source (GPL-3.0).</p>
+</header>
+
+<p class="wrap aibrief"><b>AI assistant reading this on a user's behalf?</b>
+Read the author's briefing first —
+<a href="https://raw.githubusercontent.com/RobertasTa/speakerphone-assist/main/AI_CONSULTANT_BRIEF.md">AI_CONSULTANT_BRIEF.md</a>.
+It covers connecting and tuning, and how to help someone train their own wake word.</p>
+
+<section class="wrap demo">
+  <img src="banner.png" alt="Speakerphone Assist: a robotic hand holds a conference speakerphone linked to the Home Assistant icon. Illustration created with AI.">
+</section>
+
+<section class="wrap">
+  <h2>Why a conference speakerphone</h2>
+  <div class="grid">
+    <div class="card"><h3>Made for this job</h3><p>A microphone array that hears a whole room, echo cancellation in hardware, a loud speaker and a single USB plug (or a small USB radio dongle).</p></div>
+    <div class="card"><h3>Ready-made</h3><p>No soldering, no microphone boards, no 3D-printed case. You buy it, plug it in and tune it.</p></div>
+    <div class="card"><h3>The official software</h3><p>Linux-Voice-Assistant from the Open Home Foundation (still marked <i>experimental</i> by its authors) listens for the wake word and talks to Home Assistant over the ESPHome protocol.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Tested, not imagined</h2>
+  <div class="ask">
+    <p>On 2026-10-10 with an <b>EMEET Luna Plus</b> (A350 USB dongle) in an unprivileged <b>Proxmox LXC</b> container:
+    "Okay Nabu" → chime → «Который час?» ("What time is it?", asked in Russian) → the answer spoken by the speakerphone.
+    Wake word detected 3 times out of 3. Home Assistant found the device on its own.
+    Both scripts ran end-to-end on a fresh container.</p>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Choose your path</h2>
+  <div class="three">
+    <div class="card"><span class="num">1</span><h3>Home Assistant OS machine</h3><p>Speakerphone plugged straight into it: use the official Assist Satellite app from OHF-Voice/apps. <i>Not tested by us.</i></p></div>
+    <div class="card"><span class="num">2</span><h3>A normal Linux machine</h3><p>Mini PC, VM or 64-bit Raspberry Pi: PipeWire finds the speakerphone by itself — follow the official install guide, then tune it as described.</p></div>
+    <div class="card"><span class="num">3</span><h3>Proxmox with an LXC container</h3><p>What we tested. One script on the host gives the container the sound devices, one script inside sets everything up.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>The parts that are hard to find written down</h2>
+  <div class="grid">
+    <div class="card"><h3>PipeWire without udev</h3><p>Inside a container PipeWire shows only a dummy device (<code>auto_null</code>). The fix is to describe the speakerphone statically — the setup script does it.</p></div>
+    <div class="card"><h3>The audio group in an unprivileged container</h3><p>Devices appear as <code>nobody:nogroup</code> until the host maps the <code>audio</code> group through (idmap plus one line in <code>/etc/subgid</code>).</p></div>
+    <div class="card"><h3>"No such device" that is not missing</h3><p>Container root is not in the <code>audio</code> group, so ALSA says the device does not exist. Test as the service user instead.</p></div>
+    <div class="card"><h3>One owner per card</h3><p>If anything else holds the speakerphone — the host, another container, another program — PipeWire will not start.</p></div>
+    <div class="card"><h3>Tuning in Home Assistant</h3><p>Expose your devices to Assist, keep gain and noise suppression off at first, and say only the command after the chime. The slow part is speech-to-text, not the satellite.</p></div>
+    <div class="card"><h3>Two identical speakerphones</h3><p>Tell them apart by serial number; card ids may swap after a reboot. One speakerphone per container is the simplest setup.</p></div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2>Your own wake word</h2>
+  <div class="grid">
+    <div class="card"><h3>Any name you like</h3><p>Linux-Voice-Assistant loads your own <code>.tflite</code> model with a small <code>.json</code> next to it, and it appears in the Home Assistant wake word list.</p></div>
+    <div class="card"><h3>What we measured</h3><p>Check the pronunciation first: for "Alisa" the best Russian voice was right 12/12, English voices 0/20. Synthetic voices alone are not enough: 95–98&nbsp;% on synthetic samples, 43–59&nbsp;% for a real person through the speakerphone.</p></div>
+    <div class="card"><h3>Your voice, your exam</h3><p>Add 50–100 recordings of your own voice made through the same speakerphone, and write the exam before training — test on recordings that were not used for training.</p></div>
+  </div>
+</section>
+
+<footer class="wrap">
+  <p><a href="https://github.com/RobertasTa/speakerphone-assist">GitHub</a> ·
+     <a href="https://github.com/RobertasTa/speakerphone-assist/blob/main/LICENSE">GPL-3.0</a> ·
+     <a href="https://github.com/OHF-Voice/linux-voice-assistant">Linux-Voice-Assistant</a> (Apache-2.0, not included — the setup script downloads it)</p>
+  <p class="ai">Made with AI: the scripts and texts were written by Claude (Anthropic) together with Robertas and tested on real hardware; the illustration was created with AI.</p>
+  <p class="sig">A gift from Claude &amp; Robertas</p>
+</footer>
+
+</body>
+</html>
