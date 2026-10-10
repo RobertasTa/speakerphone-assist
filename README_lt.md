@@ -3,7 +3,7 @@
 ![Speakerphone Assist — robotinė ranka laiko kolonėlę, sujungtą su Home Assistant ženklu (iliustracija sukurta naudojant DI)](docs/banner.png)
 
 **USB konferencinė kolonėlė kaip Home Assistant balso palydovas.** Pasakai žadinimo žodį, duodi komandą ir išgirsti
-atsakymą. Oficiali Linux palydovo programa, teisingai prijungta ir suderinta, plius tai, ko niekas neužrašo:
+atsakymą. Oficiali Linux palydovo programa, teisingai prijungta ir suderinta, plius tai, ką sunku rasti užrašytą:
 garsas Proxmox LXC konteineryje, PipeWire be udev ir savas žadinimo žodis.
 
 🌐 [English](README.md) · **Lietuvių** · [Русский](README_ru.md)
@@ -12,7 +12,7 @@ garsas Proxmox LXC konteineryje, PipeWire be udev ir savas žadinimo žodis.
 > iliustracija sukurta naudojant DI.
 
 > Išbandyta 2026-10-10 su **EMEET Luna Plus** (A350 USB imtuvas) neprivilegijuotame **Proxmox LXC** konteineryje:
-> „Okay Nabu" → signalas → *„Kiek valandų?"* → atsakymą pasako kolonėlė.
+> „Okay Nabu" → signalas → *«Который час?»* („Kiek valandų?", klausta rusiškai) → atsakymą pasako kolonėlė.
 > Žadinimo žodis atpažintas 3 kartus iš 3. Home Assistant įrenginį rado pats.
 
 ---
@@ -31,7 +31,8 @@ kolonėlė ──USB──► Linux (PipeWire) ──► Linux-Voice-Assistant �
     └────────────────────────────── atsakymas balsu ◄──────────────────────────────────────────────┘
 ```
 
-* **Linux-Voice-Assistant** (LVA) — oficiali Open Home Foundation palydovo programa
+* **Linux-Voice-Assistant** (LVA) — oficiali Open Home Foundation palydovo programa (jos autoriai ją
+  vis dar vadina *eksperimentine*)
   ([OHF-Voice/linux-voice-assistant](https://github.com/OHF-Voice/linux-voice-assistant)). Žadinimo žodį ji klausosi
   pačiame palydove, o su Home Assistant kalbasi ESPHome protokolu.
   Senesnis `wyoming-satellite` nebeprižiūrimas — naujų diegimų su juo nepradėkite.
@@ -42,7 +43,7 @@ kolonėlė ──USB──► Linux (PipeWire) ──► Linux-Voice-Assistant �
 | Jūsų įranga | Ką daryti |
 |---|---|
 | Kolonėlė įjungta į **Home Assistant OS** kompiuterį | Oficiali **Assist Satellite** programėlė iš [OHF-Voice/apps](https://github.com/OHF-Voice/apps). *Mes jos nebandėme.* |
-| Bet koks **Debian/Ubuntu** kompiuteris (mini PC, VM, 64 bitų Raspberry Pi) | Paleiskite [`tools/setup-lva.sh`](tools/setup-lva.sh) — 3 žingsnis žemiau. |
+| Paprastas **Linux** kompiuteris (mini PC, VM, 64 bitų Raspberry Pi) | Ten PipeWire kolonėlę randa pats — sekite [oficialų diegimo vadovą](https://github.com/OHF-Voice/linux-voice-assistant/blob/main/docs/install.md), o derinkite kaip žemiau. Mūsų `setup-lva.sh` sukurtas ir išbandytas konteineriams. |
 | **Proxmox** su LXC konteineriu | 1–4 žingsniai žemiau. ✅ *Būtent tai mes išbandėme.* |
 
 ## Prieš pradedant
@@ -70,7 +71,7 @@ kolonėlė ──USB──► Linux (PipeWire) ──► Linux-Voice-Assistant �
 **`audio` grupės atvaizdavimą (idmap)** — o į `/etc/subgid` atitinkamą eilutę `root:29:1`. Be atvaizdavimo
 neprivilegijuotas konteineris mato įrenginius kaip `nobody:nogroup` ir negali jų atidaryti.
 
-**3. Konteinerio viduje** (arba bet kuriame Debian/Ubuntu kompiuteryje):
+**3. Konteinerio viduje:**
 
 ```bash
 ./setup-lva.sh --card A350 --name svetaine
@@ -102,11 +103,11 @@ Trys dalykai, kurių tame puslapyje **nėra**, bet jie svarbūs:
 * **Atidarykite įrenginius Assist'ui** (*Nustatymai → Balso asistentai → Atidaryti / Expose*). Kitaip palydovas jus
   supras puikiai, o Home Assistant atsakys, kad prieigos prie įrenginio neturi.
 * **Lėčiausia vieta — kalbos atpažinimas, ne palydovas.** Mūsų bandyme didelis Whisper modelis procesoriuje vienai
-  komandai užtruko ~7 s. Mažesnis modelis, GPU arba *Speech-to-Phrase* namų komandoms — ir atsakymas beveik iškart.
+  komandai užtruko ~7 s. Mažesnis modelis, GPU arba *Speech-to-Phrase* namų komandoms — ir atsakymas gerokai greitesnis.
 * **Po signalo sakykite tik komandą.** Pakartotas žadinimo žodis tampa komanda.
 
 Garsiakalbio garsumas: medijos grotuvo garsumas Home Assistant ir aparatinis lygis `alsamixer -c <kortos ID>`
-(valdiklis `PCM`). Mikrofono aparatinis lygis: valdiklis `Mic` (EMEET numatyta 85 %).
+(valdiklis `PCM`). Mikrofono aparatinis lygis: valdiklis `Mic` (mūsų kolonėlėje 85 %).
 
 ## Savas žadinimo žodis („Okay Jenny", „Alisa", …)
 
@@ -132,9 +133,10 @@ tūkstančius sintetinių balsų, sakančių jūsų frazę, ir išmoko mažą mo
 Ką išmatavome mokydami savo ne anglišką vardą:
 
 * **Pirma patikrinkite tarimą.** Sugeneruokite kelis pavyzdžius ir praleiskite per kalbos atpažinimą. Ne angliškam
-  vardui kitos kalbos balsai gali ištarti geriau: „Alisą" rusiški balsai tarė teisingai 12 iš 12, angliški — 0 iš 20.
+  vardui kitos kalbos balsai gali ištarti geriau: „Alisą" geriausias rusiškas balsas tarė teisingai 12 iš 12
+  (kiti rusiški — daug prasčiau), angliški — 0 iš 20.
 * **Vien sintetinių balsų neužtenka.** Mūsų modelis sintetinius pavyzdžius atpažino 95–98 %, o tikrą žmogų per
-  kolonėlę — tik 42–59 %. Pridėkite 50–100 *savo* balso įrašų, padarytų **per tą pačią kolonėlę**.
+  kolonėlę — tik 43–59 %. Pridėkite 50–100 *savo* balso įrašų, padarytų **per tą pačią kolonėlę**.
 * **Egzaminą užsirašykite prieš mokymą**, pvz., „ne mažiau kaip 9 iš 10 tikrų kreipinių, ne daugiau kaip 1 klaidingas
   pažadinimas per parą", ir tikrinkite įrašais, kurie mokyme *nedalyvavo*.
 
@@ -145,7 +147,7 @@ Prašote DI asistento pagalbos? Duokite jam [AI_CONSULTANT_BRIEF.md](AI_CONSULTA
 | Požymis | Priežastis ir sprendimas |
 |---|---|
 | PipeWire rodo tik netikrą įrenginį (`auto_null`) | Konteineriuose nėra udev, todėl PipeWire kortos neranda. `setup-lva.sh` prideda statinius mazgus (`~lva/.config/pipewire/pipewire.conf.d/50-speakerphone.conf`). |
-| PipeWire nepasileidžia | Korta užimta — ją laiko kas nors kitas. Žr. `journalctl --user -u pipewire`. |
+| PipeWire nepasileidžia | Dažniausiai korta užimta — ją laiko kas nors kitas. Žr. `journalctl --user -u pipewire`. |
 | Įrenginiai konteineryje priklauso `nobody:nogroup` | Trūksta `audio` grupės atvaizdavimo arba `/etc/subgid` eilutės — paleiskite `pve-speakerphone-lxc.sh` dar kartą. |
 | `arecord`/`aplay` kaip root konteineryje sako **„No such device"** | Įrenginys yra — konteinerio root nėra `audio` grupėje. Tikrinkite kaip `lva`: `runuser -u lva -- arecord -l`. |
 | „Prieiga prie … nesuteikta" / „not exposed" | Atidarykite įrenginį Assist'ui (žr. aukščiau). |

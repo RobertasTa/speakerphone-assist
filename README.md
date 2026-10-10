@@ -4,7 +4,7 @@
 
 **Use a USB conference speakerphone as a Home Assistant voice satellite** — say a wake word, give a command,
 hear the answer. The official Linux satellite software, connected and tuned the right way, with the parts
-nobody writes down: Proxmox LXC audio, PipeWire without udev, and your own wake word.
+that are hard to find written down: Proxmox LXC audio, PipeWire without udev, and your own wake word.
 
 🌐 **English** · [Lietuvių](README_lt.md) · [Русский](README_ru.md)
 
@@ -12,7 +12,7 @@ nobody writes down: Proxmox LXC audio, PipeWire without udev, and your own wake 
 > real hardware; the illustration was created with AI.
 
 > Tested on 2026-10-10 with an **EMEET Luna Plus** (A350 USB dongle) in an unprivileged **Proxmox LXC** container:
-> "Okay Nabu" → chime → *"What time is it?"* → the answer is spoken by the speakerphone.
+> "Okay Nabu" → chime → *«Который час?»* ("What time is it?", asked in Russian) → the answer is spoken by the speakerphone.
 > Wake word detected 3 times out of 3. Home Assistant found the device on its own.
 
 ---
@@ -31,7 +31,8 @@ speakerphone ──USB──► Linux (PipeWire) ──► Linux-Voice-Assistant
      └──────────────────────────────── spoken answer ◄─────────────────────────────────────────────┘
 ```
 
-* **Linux-Voice-Assistant** (LVA) is the official satellite program from the Open Home Foundation
+* **Linux-Voice-Assistant** (LVA) is the official satellite program from the Open Home Foundation, still marked
+  *experimental* by its authors
   ([OHF-Voice/linux-voice-assistant](https://github.com/OHF-Voice/linux-voice-assistant)). It listens for the wake
   word on the satellite itself and talks to Home Assistant over the ESPHome protocol.
   The older `wyoming-satellite` is deprecated — do not start new installs with it.
@@ -42,7 +43,7 @@ speakerphone ──USB──► Linux (PipeWire) ──► Linux-Voice-Assistant
 | Your setup | What to do |
 |---|---|
 | Speakerphone plugged into the **Home Assistant OS** machine | Use the official **Assist Satellite** app from [OHF-Voice/apps](https://github.com/OHF-Voice/apps). *Not tested by us.* |
-| Any **Debian/Ubuntu** machine (mini PC, VM, 64-bit Raspberry Pi) | Run [`tools/setup-lva.sh`](tools/setup-lva.sh) — step 3 below. |
+| A normal **Linux** machine (mini PC, VM, 64-bit Raspberry Pi) | PipeWire finds the speakerphone by itself there — follow the [official install guide](https://github.com/OHF-Voice/linux-voice-assistant/blob/main/docs/install.md), then tune it as below. Our `setup-lva.sh` is made and tested for containers. |
 | **Proxmox** with an LXC container | Steps 1–4 below. ✅ *This is what we tested.* |
 
 ## Before you start
@@ -70,7 +71,7 @@ It adds three things to `/etc/pve/lxc/120.conf` — access to ALSA devices (`c 1
 and an **idmap for the `audio` group** — and the matching `root:29:1` line to `/etc/subgid`. Without the idmap an
 unprivileged container sees the devices as `nobody:nogroup` and cannot open them.
 
-**3. Inside the container** (or on any Debian/Ubuntu machine):
+**3. Inside the container:**
 
 ```bash
 ./setup-lva.sh --card A350 --name living-room
@@ -102,11 +103,11 @@ Three things that are **not** on that page but matter:
 * **Expose your devices to Assist** (*Settings → Voice assistants → Expose*). Otherwise the satellite understands
   you perfectly and Home Assistant answers that it has no access to the device.
 * **Speech-to-text speed is the bottleneck, not the satellite.** In our test a large Whisper model on a CPU took
-  ~7 s per command. A smaller model, a GPU or *Speech-to-Phrase* for home commands makes it feel instant.
+  ~7 s per command. A smaller model, a GPU or *Speech-to-Phrase* for home commands makes it much faster.
 * **After the chime, say only the command.** Repeating the wake word turns it into the command.
 
 Speaker volume: the media player volume in Home Assistant, and the hardware level with `alsamixer -c <card id>`
-(control `PCM`). Microphone hardware level: control `Mic` (EMEET default 85 %).
+(control `PCM`). Microphone hardware level: control `Mic` (85 % on our unit).
 
 ## Your own wake word ("Okay Jenny", "Alisa", …)
 
@@ -132,10 +133,10 @@ thousands of synthetic voices saying your phrase and trains a small model (about
 What we measured while training our own non-English name:
 
 * **Check the pronunciation first.** Generate a few samples and run them through speech recognition. For a
-  non-English name, voices of another language may say it better: for "Alisa" Russian voices were right 12/12,
-  English ones 0/20.
+  non-English name, voices of another language may say it better: for "Alisa" the best Russian voice was right 12/12
+  (other Russian voices far less), English ones 0/20.
 * **Synthetic voices alone are not enough.** Our model recognised synthetic samples 95–98 % of the time, but a
-  real person through the speakerphone only 42–59 %. Add 50–100 recordings of *your own* voice made **through the
+  real person through the speakerphone only 43–59 %. Add 50–100 recordings of *your own* voice made **through the
   same speakerphone**.
 * **Write the exam before training:** for example "at least 9 of 10 real calls, at most 1 false wake a day", and test
   on recordings that were *not* used for training.
@@ -147,7 +148,7 @@ Asking an AI assistant for help? Give it [AI_CONSULTANT_BRIEF.md](AI_CONSULTANT_
 | Symptom | Cause and fix |
 |---|---|
 | PipeWire shows only a dummy device (`auto_null`) | Containers have no udev, so PipeWire cannot discover the card. `setup-lva.sh` adds static nodes (`~lva/.config/pipewire/pipewire.conf.d/50-speakerphone.conf`). |
-| PipeWire does not start | The card is busy — something else has it open. Check `journalctl --user -u pipewire`. |
+| PipeWire does not start | Most often the card is busy — something else has it open. Check `journalctl --user -u pipewire`. |
 | Devices inside the container belong to `nobody:nogroup` | The `audio` group idmap or the `/etc/subgid` line is missing — run `pve-speakerphone-lxc.sh` again. |
 | `arecord`/`aplay` as root inside the container says **"No such device"** | Not a missing device — container root is not in the `audio` group. Test as the `lva` user: `runuser -u lva -- arecord -l`. |
 | "Access to … is not granted" / "not exposed" | Expose the device to Assist (see above). |

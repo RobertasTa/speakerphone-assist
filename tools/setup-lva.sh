@@ -32,6 +32,12 @@ while [ $# -gt 0 ]; do
     esac
 done
 [ "$(id -u)" -eq 0 ] || { echo "Run as root."; exit 1; }
+if [ -e /run/udev/control ]; then
+    echo "NOTE: this system runs udev, so PipeWire can find the speakerphone by itself."
+    echo "      This script is made and tested for containers (no udev); on a normal machine the official"
+    echo "      Linux-Voice-Assistant install guide is the better fit. Continuing in 5 s — Ctrl+C to stop."
+    sleep 5
+fi
 [ -n "$CARD" ] || { echo "--card is required. Your cards:"; arecord -l 2>/dev/null || cat /proc/asound/cards; exit 1; }
 
 echo "== 1/6 packages"

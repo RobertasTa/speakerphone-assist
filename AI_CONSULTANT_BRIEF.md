@@ -32,6 +32,8 @@ each step checkable. Then stay with them through the first error (table at the e
   `/etc/subgid`. `tools/pve-speakerphone-lxc.sh <CTID>` prints and applies exactly this.
 * Container **root is not in the `audio` group** — ALSA then reports *"No such device"*, which looks like a missing
   device but is a permission problem. Always test as the `lva` user.
+* `tools/setup-lva.sh` is made and tested for **containers** (no udev). On a normal Linux machine PipeWire finds the
+  card itself — point the person to the official LVA install guide instead.
 * **One owner per sound card.** If the host or another container holds the card, PipeWire refuses to start.
 * Tested speakerphone: **EMEET Luna Plus** with the A350 USB dongle (`328f:007b`) — microphone mono 16–48 kHz,
   speaker stereo **48–96 kHz only** (PipeWire resamples). Its hardware does echo cancellation; start with software
@@ -57,10 +59,10 @@ What the authors **measured** while training a non-English name — use it, do n
 
 1. **Pronunciation check before training.** Generate ~20 synthetic samples per TTS voice and run them through
    speech recognition. Keep only voices that say the name the way the owner does. For the Lithuanian "Alisa",
-   Russian voices were right 12/12, English voices 0/20. A filter "does ASR hear the name?" over thousands of
+   the best Russian voice was right 12/12 (other Russian voices far less), English voices 0/20. A filter "does ASR hear the name?" over thousands of
    synthetic clips kept 37 %.
 2. **Synthetic voices alone fail on the real person.** The authors' model scored 95–98 % on synthetic clips but
-   only **42–59 %** on the owner speaking through the speakerphone. Weighting the owner's real clips ×4 added
+   only **43–59 %** on the owner speaking through the speakerphone. Weighting the owner's real clips ×4 added
    +19 points. Equalising loudness did *not* help.
 3. **The owner's dictation file.** Ask for **50–100 utterances recorded through the same speakerphone, in the
    room**: normal voice, quiet, from a distance, with the TV on, variants the person really uses. Cut each
