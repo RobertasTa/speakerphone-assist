@@ -104,6 +104,7 @@ Trys dalykai, kurių tame puslapyje **nėra**, bet jie svarbūs:
   supras puikiai, o Home Assistant atsakys, kad prieigos prie įrenginio neturi.
 * **Lėčiausia vieta — kalbos atpažinimas, ne palydovas.** Mūsų bandyme didelis Whisper modelis procesoriuje vienai
   komandai užtruko ~7 s. Mažesnis modelis, GPU arba *Speech-to-Phrase* namų komandoms — ir atsakymas gerokai greitesnis.
+  Lietuviškai: [LT_ausys](https://github.com/RobertasTa/lt-ausys) — apie 0,2 s komandai procesoriuje.
 * **Po signalo sakykite tik komandą.** Pakartotas žadinimo žodis tampa komanda.
 
 Garsiakalbio garsumas: medijos grotuvo garsumas Home Assistant ir aparatinis lygis `alsamixer -c <kortos ID>`
@@ -154,6 +155,7 @@ Prašote DI asistento pagalbos? Duokite jam [AI_CONSULTANT_BRIEF.md](AI_CONSULTA
 | `Failed to load cookie file` | Nekenksminga. |
 | Garsiakalbis nepriima 16 kHz | EMEET tai normalu (groja 48–96 kHz). PipeWire perskaičiuoja. |
 | Staiga „girdi" tik triukšmą, USB klaidų nėra | EMEET imtuvas gali užstrigti neatsijungdamas. Išjunkite ir vėl įjunkite kolonėlę. |
+| Kurčias po to, kai imtuvas dingo iš USB (`dmesg` rodo USB atsijungimą ir prisijungimą) | Tikėtina, kad garso serveris tebelaiko seną įrenginį. Perkraukite jį ir palydovą: `runuser -u lva -- env XDG_RUNTIME_DIR=/run/user/$(id -u lva) systemctl --user restart pipewire pipewire-pulse wireplumber && systemctl restart linux-voice-assistant`. Tai sutikome savo (ne LVA) kolonėlės sistemoje; su LVA neatkurta. |
 | Dvi vienodos kolonėlės | Atskirkite pagal serijos numerį (`/dev/snd/by-id/`). Kortų ID (`A350`, `A350_1`) po perkrovimo gali susikeisti — paprasčiausia: viena kolonėlė vienam konteineriui. |
 
 ## Išbandyta su
@@ -164,7 +166,7 @@ Prašote DI asistento pagalbos? Duokite jam [AI_CONSULTANT_BRIEF.md](AI_CONSULTA
 | Serveris | Proxmox VE 9.2.6, neprivilegijuotas LXC, Ubuntu 24.04 |
 | Programos | PipeWire 1.0.5, WirePlumber 0.4.17, Python 3.12, Linux-Voice-Assistant `b49fd8d` (2026-09-29) |
 | Home Assistant | 2026.10.0 |
-| Skriptai | `pve-speakerphone-lxc.sh` ir `setup-lva.sh` praeina iki galo švariame konteineryje; `setup-lva.sh` galima leisti pakartotinai |
+| Skriptai | `pve-speakerphone-lxc.sh` ir `setup-lva.sh` praeina iki galo švariame konteineryje — išbandyta su kompiuterio vidine garso korta, nes kolonėlė tuo metu buvo užimta; balso bandymas viršuje darytas tais pačiais žingsniais ranka (perduodant tik kolonėlės įrenginius, ne visą `/dev/snd`). `setup-lva.sh` galima leisti pakartotinai |
 
 ## Licencija
 

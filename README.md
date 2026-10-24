@@ -104,6 +104,7 @@ Three things that are **not** on that page but matter:
   you perfectly and Home Assistant answers that it has no access to the device.
 * **Speech-to-text speed is the bottleneck, not the satellite.** In our test a large Whisper model on a CPU took
   ~7 s per command. A smaller model, a GPU or *Speech-to-Phrase* for home commands makes it much faster.
+  For Lithuanian: [LT_ausys](https://github.com/RobertasTa/lt-ausys) — about 0.2 s per command on a CPU.
 * **After the chime, say only the command.** Repeating the wake word turns it into the command.
 
 Speaker volume: the media player volume in Home Assistant, and the hardware level with `alsamixer -c <card id>`
@@ -155,6 +156,7 @@ Asking an AI assistant for help? Give it [AI_CONSULTANT_BRIEF.md](AI_CONSULTANT_
 | `Failed to load cookie file` | Harmless. |
 | The speaker refuses 16 kHz | Normal for EMEET (plays 48–96 kHz). PipeWire resamples. |
 | It suddenly "hears" only noise, no USB errors | The EMEET dongle can lock up without disconnecting. Switch the speakerphone off and on. |
+| Deaf after the dongle dropped off USB (`dmesg` shows a USB disconnect and reconnect) | The audio server probably still holds the old device. Restart it and the satellite: `runuser -u lva -- env XDG_RUNTIME_DIR=/run/user/$(id -u lva) systemctl --user restart pipewire pipewire-pulse wireplumber && systemctl restart linux-voice-assistant`. We met this on our own (non-LVA) speakerphone setup; not reproduced with LVA. |
 | Two identical speakerphones | Tell them apart by serial number (`/dev/snd/by-id/`). Card ids (`A350`, `A350_1`) may swap after a reboot — one speakerphone per container is the simplest setup. |
 
 ## Tested with
@@ -165,7 +167,7 @@ Asking an AI assistant for help? Give it [AI_CONSULTANT_BRIEF.md](AI_CONSULTANT_
 | Host | Proxmox VE 9.2.6, unprivileged LXC, Ubuntu 24.04 |
 | Software | PipeWire 1.0.5, WirePlumber 0.4.17, Python 3.12, Linux-Voice-Assistant `b49fd8d` (2026-09-29) |
 | Home Assistant | 2026.10.0 |
-| Scripts | `pve-speakerphone-lxc.sh` and `setup-lva.sh` run end-to-end on a fresh container; `setup-lva.sh` is safe to run again |
+| Scripts | `pve-speakerphone-lxc.sh` and `setup-lva.sh` run end-to-end on a fresh container — tested with the host's built-in sound card, because the speakerphone was busy at the time; the voice test above went through the same steps by hand (passing only the speakerphone's device nodes instead of all of `/dev/snd`). `setup-lva.sh` is safe to run again |
 
 ## License
 

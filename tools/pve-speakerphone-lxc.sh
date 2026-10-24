@@ -44,9 +44,10 @@ for d in /proc/asound/card[0-9]*; do
         [ "$(readlink "$l")" = "../controlC${n}" ] && serial="$(basename "$l")"
     done
     printf '%-5s %-12s %-10s %s %s\n' "$n" "$id" "$usb" "$name" "${serial:+| $serial}"
+    [ "$usb" = "-" ] || USBCARD="$id"
 done
 echo
-echo "Use the 'id' column of your speakerphone as --card for setup-lva.sh (for example: --card ${id:-A350})."
+echo "Use the 'id' column of your speakerphone as --card for setup-lva.sh (for example: --card ${USBCARD:-A350})."
 echo "⚠ The card must not be used by anything else (host or another container) — PipeWire will not start if it cannot open it."
 echo
 
